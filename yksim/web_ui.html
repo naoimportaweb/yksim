@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YubiKey virtual</title>
+<style>
+  :root {
+    --bg: #1e2227; --panel: #262b31; --fg: #e6e6e6; --muted: #9aa3ad;
+    --body: #141414; --edge: #3a3a3a; --metal: #c9ccd1; --metal-dark: #8d9198;
+    --gold: #d4a93c; --gold-pressed: #a8832a; --gold-edge: #8a6a1f;
+    --led-off: #3b3221; --green: #5dff7a; --amber: #ffb347; --red: #ff8a80;
+    --on: #2e7d32; --on-h: #388e3c; --off: #b23b3b; --off-h: #c94848;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  .wrap { display: grid; grid-template-columns: 280px 1fr; gap: 14px; padding: 14px; height: 100%; }
+  .panel { background: var(--panel); border-radius: 10px; padding: 14px; min-height: 0; }
+  .left { display: flex; flex-direction: column; align-items: center; }
+  svg { width: 240px; height: 470px; user-select: none; -webkit-user-select: none; }
+  #key { transition: transform .45s cubic-bezier(.3,.7,.3,1); }
+  body.unplugged #key { transform: translateY(70px); }
+  #disc { cursor: pointer; }
+  #disc .face { fill: var(--gold); transition: fill .08s; }
+  #disc.pressed { transform: translate(1px, 1.5px); }
+  #disc.pressed .face { fill: var(--gold-pressed); }
+  #disc:focus { outline: none; }
+  #disc:focus-visible .face { stroke: #fff; stroke-width: 3; }
+  #led { fill: var(--led-off); }
+  #glow { fill: var(--body); }
+  button.power {
+    width: 100%; margin-top: 10px; padding: 12px; border: 0; border-radius: 8px;
+    font: 700 15px system-ui, sans-serif; letter-spacing: .5px; color: #fff; cursor: pointer;
+    background: var(--on);
+  }
+  button.power:hover { background: var(--on-h); }
+  body.powered button.power { background: var(--off); }
+  body.powered button.power:hover { background: var(--off-h); }
+  .hint { color: var(--muted); text-align: center; font-size: 13px; margin-top: 8px; }
+  kbd { background: #1a1d21; border: 1px solid #444; border-radius: 4px; padding: 0 5px; font-size: 12px; }
+  .right { display: flex; flex-direction: column; gap: 10px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  .secret { font: 700 15px ui-monospace, Consolas, "DejaVu Sans Mono", monospace; letter-spacing: 1px; }
+  .blocked { color: var(--red); font-weight: 600; }
+  .muted { color: var(--muted); }
+  #touchBanner {
+    min-height: 26px; font-weight: 700; font-size: 15px; color: var(--green);
+  }
+  #log {
+    flex: 1; min-height: 160px; overflow: auto; margin: 0; padding: 8px 10px; border-radius: 6px;
+    background: #16191d; color: #c8d0d8; font: 12px/1.5 ui-monospace, Consolas, "DejaVu Sans Mono", monospace;
+    white-space: pre;
+  }
+  #log .evt { color: var(--green); }
+  #log .err { color: var(--red); }
+  .keyrow { display: flex; gap: 8px; align-items: center; }
+  .keyrow select, .keyrow button {
+    background: #16191d; color: var(--fg); border: 1px solid #3a4048; border-radius: 6px;
+    padding: 4px 8px; font: 13px ui-monospace, Consolas, "DejaVu Sans Mono", monospace;
+  }
+  .keyrow select { flex: 1; min-width: 0; }
+  .keyrow button { font-family: system-ui, sans-serif; cursor: pointer; }
+  .keyrow :disabled { color: var(--muted); cursor: default; }
+  label.auto { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+  #offline {
+    display: none; position: fixed; inset: 0; background: rgba(10,12,14,.85);
+    align-items: center; justify-content: center; text-align: center; font-size: 16px;
+  }
+  body.offline #offline { display: flex; }
+  @media (max-width: 700px) {
+    .wrap { grid-template-columns: 1fr; height: auto; }
+  }
+</style>
+</head>
+<body class="unplugged">
+<div class="wrap">
+  <section class="panel left">
+    <svg viewBox="0 0 240 470" aria-label="YubiKey virtual">
+      <!-- chave (desliza para fora da porta quando desligada) -->
+      <g id="key">
+        <rect x="84" y="20" width="72" height="72" fill="var(--metal)" stroke="var(--metal-dark)" stroke-width="2"/>
+        <rect x="100" y="38" width="12" height="10" fill="var(--metal-dark)"/>
+        <rect x="128" y="38" width="12" height="10" fill="var(--metal-dark)"/>
+        <rect x="62" y="86" width="116" height="294" rx="26" fill="var(--body)" stroke="var(--edge)" stroke-width="2"/>
+        <text x="120" y="137" text-anchor="middle" fill="#5f6670" font-size="19" font-weight="700" font-family="system-ui, sans-serif">yksim</text>
+        <text x="120" y="158" text-anchor="middle" fill="#4d535b" font-size="11" font-family="system-ui, sans-serif">5 NFC · virtual</text>
+        <circle cx="120" cy="356" r="18" fill="var(--panel)" stroke="var(--edge)" stroke-width="2"/>
+        <circle id="glow" cx="120" cy="245" r="50"/>
+        <circle id="led" cx="120" cy="245" r="43"/>
+        <g id="disc" tabindex="0" role="button" aria-label="Tocar na chave">
+          <circle class="face" cx="120" cy="245" r="36" stroke="var(--gold-edge)" stroke-width="2"/>
+          <circle cx="120" cy="245" r="22" fill="none" stroke="var(--gold-edge)" stroke-width="2"/>
+          <circle cx="120" cy="245" r="6" fill="var(--gold-edge)"/>
+        </g>
+      </g>
+      <!-- notebook com a porta USB (fica na frente do conector) -->
+      <rect x="0" y="0" width="240" height="34" fill="#3d434b"/>
+      <rect x="80" y="22" width="80" height="12" fill="#0c0c0c" stroke="#5a6068"/>
+      <text x="120" y="14" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="system-ui, sans-serif">porta USB</text>
+    </svg>
+    <button class="power" id="power">LIGAR</button>
+    <div class="hint">Clique no disco dourado (ou <kbd>Espaço</kbd>) para tocar.<br><kbd>L</kbd> liga/desliga.</div>
+  </section>
+
+  <section class="panel right">
+    <h1>YubiKey 5 NFC (virtual)</h1>
+    <div class="keyrow">
+      <label for="keys" class="muted">Chave</label>
+      <select id="keys" title="Qual chave virtual está plugada no leitor"></select>
+      <button id="newKey" title="Cria uma chave nova com serial aleatório de 8 dígitos">Nova chave</button>
+    </div>
+    <dl>
+      <dt>Estado</dt><dd id="status">—</dd>
+      <dt>Serial</dt><dd id="serial">—</dd>
+      <dt>Firmware</dt><dd id="fw">—</dd>
+      <dt>Interfaces USB</dt><dd id="iface">—</dd>
+      <dt>vpcd</dt><dd id="vpcd">—</dd>
+      <dt>PIN</dt><dd id="pin">—</dd>
+      <dt>PUK</dt><dd id="puk">—</dd>
+      <dt>Chave de gerenciamento</dt><dd id="mgmt">—</dd>
+      <dt>Chaves PIV</dt><dd id="slots">—</dd>
+    </dl>
+    <div class="keyrow">
+      <button id="resetTries" title="Volta os contadores ao máximo e desbloqueia, sem mudar o PIN nem o PUK">Restaurar tentativas de PIN/PUK</button>
+    </div>
+    <div id="touchBanner" aria-live="assertive"></div>
+    <pre id="log" aria-live="polite"></pre>
+    <label class="auto"><input type="checkbox" id="auto"> Aprovar toques automaticamente</label>
+  </section>
+</div>
+<div id="offline"><div>O simulador foi fechado.<br><span class="muted">Rode <kbd>yubikey</kbd> de novo e recarregue a página.</span></div></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let state = null;
+let lastApdu = 0, activityUntil = 0, keysShown = "";
+
+function post(path, body = {}) {
+  return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+}
+
+function tries(t) {
+  let s = `<b class="secret">${esc(t.value)}</b> · ${t.remaining}/${t.total} tentativas` + (t.default ? " (valor padrão)" : "");
+  return t.remaining === 0 ? `<span class="blocked">${s} — BLOQUEADO</span>` : s;
+}
+
+function esc(s) {
+  return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+
+function render(s) {
+  state = s;
+  document.body.classList.toggle("powered", s.powered);
+  document.body.classList.toggle("unplugged", !s.powered);
+  $("power").textContent = s.powered ? "DESLIGAR" : "LIGAR";
+  $("status").textContent = !s.powered ? "Desligada"
+    : s.status === "connected" ? "Ligada — conectada ao pcscd" : "Ligada — aguardando vpcd/pcscd…";
+  $("serial").textContent = s.serial;
+  document.title = `YubiKey virtual — ${s.serial}`;
+  const shown = JSON.stringify([s.keys, s.serial]);
+  if (shown !== keysShown) {  // só refaz a lista quando muda (não fecha o menu aberto)
+    keysShown = shown;
+    const sel = $("keys");
+    sel.replaceChildren(...s.keys.map((k) => new Option(String(k), String(k), false, k === s.serial)));
+  }
+  $("keys").disabled = $("newKey").disabled = s.switching || !s.multi;
+  $("resetTries").disabled = s.switching || (s.pin.remaining === s.pin.total && s.puk.remaining === s.puk.total);
+  $("fw").textContent = s.firmware;
+  $("iface").textContent = s.interfaces;
+  $("vpcd").textContent = s.vpcd;
+  $("pin").innerHTML = tries(s.pin);
+  $("puk").innerHTML = tries(s.puk);
+  $("mgmt").textContent = s.mgmt.type + (s.mgmt.default ? " (valor padrão)" : "") + (s.mgmt.touch ? ", exige toque" : "");
+  $("slots").innerHTML = s.slots.length
+    ? s.slots.map((k) => `${k.slot}: ${k.type} <span class="muted">(${k.origin}; ${k.policy})</span>`).join("<br>")
+    : '<span class="muted">nenhuma</span>';
+  $("auto").checked = s.auto_touch;
+  $("touchBanner").textContent = s.touch ? `► Toque na chave! (slot ${s.touch.slot}, ${s.touch.remaining.toFixed(1)} s)` : "";
+  if (s.apdu_count !== lastApdu) { lastApdu = s.apdu_count; activityUntil = performance.now() + 70; }
+  if (s.log.length) {
+    const log = $("log");
+    const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
+    for (const e of s.log) {
+      const line = document.createElement("span");
+      if (e.kind) line.className = e.kind;
+      line.textContent = `${e.t}  ${e.msg}\n`;
+      log.appendChild(line);
+    }
+    while (log.childNodes.length > 500) log.removeChild(log.firstChild);
+    if (atBottom) log.scrollTop = log.scrollHeight;
+  }
+}
+
+// LED: apagado / âmbar piscando / verde (pisca a cada APDU) / verde piscando rápido (toque)
+function ledLoop(now) {
+  let color = "var(--led-off)", glow = "var(--body)";
+  if (state && state.powered) {
+    if (state.touch) {
+      if (Math.floor(now / 1000 * 6) % 2 === 0) color = "var(--green)";
+    } else if (state.status !== "connected") {
+      if (Math.floor(now / 1000 * 2) % 2 === 0) color = "var(--amber)";
+    } else if (now > activityUntil) {
+      color = "var(--green)";
+    }
+  }
+  if (color === "var(--green)") glow = "#1f3d26";
+  else if (color === "var(--amber)") glow = "#3d2f1a";
+  $("led").style.fill = color;
+  $("glow").style.fill = glow;
+  requestAnimationFrame(ledLoop);
+}
+requestAnimationFrame(ledLoop);
+
+// Toque: pressiona ao apertar, envia ao soltar (como o botão físico)
+const disc = $("disc");
+function press() { disc.classList.add("pressed"); }
+function release(send) {
+  if (!disc.classList.contains("pressed")) return;
+  disc.classList.remove("pressed");
+  if (send) post("/api/touch");
+}
+disc.addEventListener("pointerdown", (e) => { e.preventDefault(); disc.setPointerCapture(e.pointerId); press(); });
+disc.addEventListener("pointerup", () => release(true));
+disc.addEventListener("pointercancel", () => release(false));
+
+$("power").addEventListener("click", () => post("/api/power", { on: !(state && state.powered) }));
+$("keys").addEventListener("change", (e) => post("/api/key", { serial: Number(e.target.value) }));
+$("newKey").addEventListener("click", () => post("/api/new_key"));
+$("resetTries").addEventListener("click", () => post("/api/reset_attempts"));
+$("auto").addEventListener("change", (e) => post("/api/auto_touch", { value: e.target.checked }));
+
+document.addEventListener("keydown", (e) => {
+  if (["INPUT", "SELECT"].includes(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.code === "Space" && !e.repeat) { e.preventDefault(); press(); }
+  if (e.key === "l" || e.key === "L") post("/api/power", { on: !(state && state.powered) });
+});
+document.addEventListener("keyup", (e) => { if (e.code === "Space") { e.preventDefault(); release(true); } });
+
+function connect() {
+  const es = new EventSource("/api/events");
+  es.onopen = () => { document.body.classList.remove("offline"); $("log").textContent = ""; };
+  es.onmessage = (ev) => render(JSON.parse(ev.data));
+  es.onerror = () => { document.body.classList.add("offline"); };
+}
+connect();
+</script>
+</body>
+</html>

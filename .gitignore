@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# estado da chave virtual (chaves privadas em claro) e materiais exportados: nunca no repositório
+state*.json
+*.pem
+*.pub

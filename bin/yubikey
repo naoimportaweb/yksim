@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# yubikey — abre o simulador de YubiKey 5 NFC (yksim).
+#
+#   yubikey              abre a janela nativa (Qt/PySide6) e libera o terminal
+#   yubikey --fg         idem, preso ao terminal (mostra logs)
+#   yubikey --web        interface no navegador (http://localhost:8765)
+#   yubikey --tk         janela Tk (antiga)
+#   yubikey --terminal   modo sem interface (só terminal)
+#   yubikey --off        abre com a chave desligada
+#   yubikey --serial N   abre a chave N (8 dígitos; cria se não existir). Sem ele: a última usada
+#   yubikey --stop       fecha o simulador
+
+DIR="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+PY="$DIR/.venv/bin/python"
+LOG="${XDG_STATE_HOME:-$HOME/.local/state}/yksim/gui.log"
+URL="http://localhost:8765/"
+PATTERN="-m yksim(\.gui|\.web|\.qt)?( |$)"
+
+if [ ! -x "$PY" ]; then
+  echo "yubikey: ambiente não encontrado em $DIR/.venv — rode $DIR/setup.sh" >&2
+  exit 1
+fi
+
+running() { pgrep -f -- "$PATTERN" >/dev/null; }
+
+open_url() {
+  # $BROWSER permite, no WSL, abrir o navegador do Windows (ex.: BROWSER=wslview, do pacote wslu)
+  ${BROWSER:-xdg-open} "$URL" >/dev/null 2>&1 || true
+}
+
+MODULE=yksim.qt
+FG=0
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --stop)
+      pkill -f -- "$PATTERN" && echo "Simulador fechado." || echo "Simulador não estava aberto."
+      exit 0 ;;
+    --terminal|-t) MODULE=yksim ;;
+    --tk) MODULE=yksim.gui ;;
+    --web) MODULE=yksim.web ;;
+    --fg) FG=1 ;;
+    *) ARGS+=("$a") ;;
+  esac
+done
+
+if running; then
+  if pgrep -f -- "-m yksim\.web" >/dev/null; then
+    echo "O simulador já está aberto — abrindo $URL"
+    open_url
+  else
+    echo "O simulador já está aberto (use 'yubikey --stop' para fechar)."
+  fi
+  exit 0
+fi
+
+cd "$DIR" || exit 1
+if [ "$FG" = 1 ] || [ "$MODULE" = yksim ]; then
+  exec "$PY" -m "$MODULE" "${ARGS[@]}"
+fi
+
+mkdir -p "$(dirname "$LOG")"
+nohup "$PY" -m "$MODULE" "${ARGS[@]}" >"$LOG" 2>&1 &
+disown
+case "$MODULE" in
+  yksim.web) echo "YubiKey virtual aberta em $URL . Log: $LOG" ;;
+  yksim.qt)  echo "YubiKey virtual aberta (janela Qt). Log: $LOG" ;;
+  *)         echo "YubiKey virtual aberta (janela Tk). Log: $LOG" ;;
+esac

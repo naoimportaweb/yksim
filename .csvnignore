@@ -1,0 +1,5 @@
+# artefatos de build
+# (chave privada, .env e convites já são barrados por padrão — §9.5)
+bin/
+*.o
+__pycache__/

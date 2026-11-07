@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" width="960" height="400" font-family="DejaVu Sans, Segoe UI, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#5b6470"/>
+    </marker>
+  </defs>
+  <rect width="960" height="400" rx="14" fill="#f7f8fa"/>
+
+  <!-- coluna 1: aplicativos -->
+  <text x="110" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#5b6470">APLICATIVOS</text>
+  <g font-size="13" fill="#1f2328">
+    <rect x="30" y="50" width="160" height="40" rx="8" fill="#fff" stroke="#c9ced6"/>
+    <text x="110" y="75" text-anchor="middle">ykman</text>
+    <rect x="30" y="100" width="160" height="40" rx="8" fill="#fff" stroke="#c9ced6"/>
+    <text x="110" y="125" text-anchor="middle">OpenSC / pkcs11-tool</text>
+    <rect x="30" y="150" width="160" height="40" rx="8" fill="#fff" stroke="#c9ced6"/>
+    <text x="110" y="175" text-anchor="middle">PRIS e outros apps</text>
+    <rect x="30" y="200" width="160" height="40" rx="8" fill="#fff" stroke="#c9ced6"/>
+    <text x="110" y="225" text-anchor="middle">tests/app_cliente.py</text>
+  </g>
+
+  <!-- coluna 2: sistema -->
+  <text x="345" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#5b6470">SISTEMA (Debian / WSL)</text>
+  <rect x="255" y="60" width="180" height="70" rx="10" fill="#e8f0fe" stroke="#7aa2e3"/>
+  <text x="345" y="90" text-anchor="middle" font-size="15" font-weight="700" fill="#1a3d7c">pcscd</text>
+  <text x="345" y="111" text-anchor="middle" font-size="12" fill="#1a3d7c">serviço PC/SC</text>
+  <rect x="255" y="170" width="180" height="70" rx="10" fill="#e8f0fe" stroke="#7aa2e3"/>
+  <text x="345" y="198" text-anchor="middle" font-size="15" font-weight="700" fill="#1a3d7c">vsmartcard-vpcd</text>
+  <text x="345" y="219" text-anchor="middle" font-size="12" fill="#1a3d7c">driver do leitor virtual</text>
+  <text x="345" y="262" text-anchor="middle" font-size="11" fill="#5b6470">nome: "Yubico YubiKey … (yksim)"</text>
+
+  <!-- coluna 3: yksim -->
+  <text x="690" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#5b6470">YKSIM (este projeto)</text>
+  <rect x="520" y="50" width="410" height="250" rx="12" fill="#fff8e6" stroke="#e0b44c"/>
+  <g font-size="13" fill="#5a4310">
+    <rect x="540" y="66" width="170" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="625" y="91" text-anchor="middle">vpcd.py (cliente TCP)</text>
+    <rect x="540" y="126" width="170" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="625" y="151" text-anchor="middle">card.py (APDUs)</text>
+    <rect x="540" y="186" width="80" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="580" y="211" text-anchor="middle" font-size="12">Gerenc.</text>
+    <rect x="630" y="186" width="80" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="670" y="211" text-anchor="middle" font-size="12">PIV</text>
+    <rect x="740" y="66" width="170" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="825" y="91" text-anchor="middle">Janela Qt / Web</text>
+    <rect x="740" y="126" width="170" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="825" y="146" text-anchor="middle">controller.py</text>
+    <text x="825" y="160" text-anchor="middle" font-size="10">energia · toque · LED · log</text>
+    <rect x="740" y="186" width="170" height="40" rx="8" fill="#fff" stroke="#e0b44c"/>
+    <text x="825" y="211" text-anchor="middle">keys.py (várias chaves)</text>
+  </g>
+  <rect x="610" y="248" width="230" height="38" rx="8" fill="#eef7ee" stroke="#78b37b"/>
+  <text x="725" y="264" text-anchor="middle" font-size="11" fill="#245c27">~/.local/share/yksim/</text>
+  <text x="725" y="279" text-anchor="middle" font-size="11" fill="#245c27">&lt;serial&gt;.json (uma chave por arquivo)</text>
+
+  <!-- setas -->
+  <g stroke="#5b6470" stroke-width="2" fill="none" marker-end="url(#a)">
+    <path d="M190 70 C225 70 225 95 253 95"/>
+    <path d="M190 120 C225 120 225 100 253 100"/>
+    <path d="M190 170 C225 170 225 105 253 105"/>
+    <path d="M190 220 C225 220 225 112 253 112"/>
+    <path d="M345 130 L345 168"/>
+    <path d="M435 205 C480 205 490 86 538 86"/>
+    <path d="M625 106 L625 124"/>
+    <path d="M610 166 L585 184"/>
+    <path d="M640 166 L665 184"/>
+    <path d="M825 106 L825 124"/>
+    <path d="M738 146 L712 146"/>
+    <path d="M825 166 L825 184"/>
+    <path d="M825 226 L780 246"/>
+  </g>
+  <text x="478" y="232" text-anchor="middle" font-size="11" fill="#5b6470">TCP</text>
+  <text x="478" y="246" text-anchor="middle" font-size="11" fill="#5b6470">:35963</text>
+
+  <text x="480" y="340" text-anchor="middle" font-size="13" fill="#1f2328">Os apps falam PC/SC com o pcscd; o driver vpcd repassa cada APDU por TCP ao yksim,</text>
+  <text x="480" y="360" text-anchor="middle" font-size="13" fill="#1f2328">que responde como uma YubiKey 5 NFC. Ligar/desligar na janela = plugar/desplugar a chave.</text>
+</svg>
